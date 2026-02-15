@@ -4,8 +4,8 @@
 
 replace `sh` with `shot`, and `shot` will:
 
-- read the script and extract any `SHOT_*` variables
-- store those values in a local SQLite database
+- read the script and extract any `SHOT_*` variables (TODO)
+- store those values in a local SQLite database (TODO)
 - pass the script to a real shell for execution
 - verify the script's integrity before running it (TODO)
 
@@ -22,15 +22,19 @@ curl https://mise.run | shot
 ```sh
 #!/usr/bin/env sh
 # /// shot
-SHOT_AUTHOR="rcastellotti"
-SHOT_NAME="shot"
-SHOT_VERSION="1.27.1"
-SHOT_WEBSITE="https://rcastellotti.dev"
+SHOT_AUTHOR = "rcastellotti"
+SHOT_NAME = "shot"
+SHOT_VERSION = "1.27.1"
+SHOT_WEBSITE = "https://rcastellotti.dev"
+SHOT_MINISIG_SIGNATURE = "https://blabla.com/shot.minisig"
+SHOT_MINISIG_PUBKEY = "https://blabla.com/rcastellotti.pubkey"
 # todo: add root/prefix to track where files are installed
 # ///
 ```
 
 - TODO: make `shot` verify script integrity (needs a server)
+  - allow users to post minisign pubkey when registering
+  - allow users to upload `.minisig` signatures whenever a version is released
 - TODO: release binaries, start with `shot_darwin_arm64`
 - TODO: add support for SHOT_SHELL to explicitly set the shell to use
 - TODO: interactive mode -> see all variables and inspect script in editor
