@@ -1,3 +1,9 @@
 [tools]
-go = "latest"
-"go:golang.org/x/tools/gopls" = "latest"
+go = "1.26.0"
+"go:golang.org/x/tools/gopls" = "0.21.0"
+
+[tasks.test]
+run = "go test cli/***"
+
+[tasks.build]
+run = "go build -o shot cli/shot.go"
