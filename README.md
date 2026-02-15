@@ -30,7 +30,7 @@ SHOT_WEBSITE="https://rcastellotti.dev"
 # ///
 ```
 
-TODO: make `shot` verify script integrity (needs a server)
-TODO: release binaries, start with `shot_darwin_arm64`
-TODO: add support for SHOT_SHELL to explicitly set the shell to use
-TODO: interactive mode -> see all variables and inspect script in editor
+- TODO: make `shot` verify script integrity (needs a server)
+- TODO: release binaries, start with `shot_darwin_arm64`
+- TODO: add support for SHOT_SHELL to explicitly set the shell to use
+- TODO: interactive mode -> see all variables and inspect script in editor
