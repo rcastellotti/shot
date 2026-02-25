@@ -1,15 +1,65 @@
 package main
 
 import (
-	"bytes"
 	"errors"
+	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
+	"time"
 )
+
+var Log *Logger
+
+type LogLevel int
+
+const (
+	ERROR LogLevel = iota
+	WARN
+	INFO
+	DEBUG
+	TRACE
+)
+
+var levelNames = map[LogLevel]string{
+	ERROR: "ERROR",
+	WARN:  "WARN ",
+	INFO:  "INFO ",
+	DEBUG: "DEBUG",
+	TRACE: "TRACE",
+}
+
+type Logger struct {
+	level  LogLevel
+	logger *log.Logger
+}
+
+func NewLogger(level LogLevel) *Logger {
+	return &Logger{
+		level:  level,
+		logger: log.New(os.Stderr, "", 0),
+	}
+}
+
+func (l *Logger) SetLevel(level LogLevel) {
+	l.level = level
+}
+
+func (l *Logger) log(level LogLevel, format string, args ...any) {
+	if level <= l.level {
+		timestamp := time.Now().Format("15:04:05")
+		prefix := fmt.Sprintf("[%s] %s ", timestamp, levelNames[level])
+		message := fmt.Sprintf(format, args...)
+		l.logger.Printf("%s%s", prefix, message)
+	}
+}
+
+	Log = NewLogger(level)
+}
+func init() {
+	Log = NewLogger(ERROR)
+}
 
 var ErrInvalidShebang = errors.New("not a valid shebang line")
 
@@ -52,31 +102,90 @@ func parseShebang(line string) ([]string, error) {
 }
 
 func main() {
-	input, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "shot: cannot read script: %v\n", err)
-		os.Exit(1)
-	}
-	log.Printf("shot: read %v bytes\n", len(input))
+	flag.Parse()
+	ParseVerbosity()
 
-	sheBangLine := strings.SplitN(string(input), "\n", 2)[0]
-	parsedShebang, err := parseShebang(sheBangLine)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "shot: cannot parse shebang: %q: %v\n", sheBangLine, err)
-		os.Exit(1)
-	}
+	// Example log messages at different levels
+	Log.Error("This is an error message (always shown)")
+	Log.Warn("This is a warning message (shown with -v)")
+	Log.Info("This is an info message (shown with -v -v)")
+	Log.Debug("This is a debug message (shown with -v -v -v)")
+	Log.Trace("This is a trace message (shown with -v -v -v -v)")
 
-	cmd := exec.Command(parsedShebang[0], parsedShebang[1:]...)
-	cmd.Args = append(cmd.Args, os.Args[1:]...)
-	cmd.Stdin = bytes.NewReader(input)
-	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	// Example of using the logger in your application
+	Log.Info("Application started")
+	Log.Debug("Connecting to database...")
+	Log.Trace("SQL: SELECT * FROM users")
+	Log.Info("Application finished")
 
-	err = cmd.Run()
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 0 {
-			os.Exit(exitErr.ExitCode())
-		}
-		fmt.Fprintf(os.Stderr, "shot: %v\n", err)
-		os.Exit(1)
-	}
+	// input, err := io.ReadAll(os.Stdin)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "shot: cannot read script: %v\n", err)
+	// 	os.Exit(1)
+	// }
+	// log.Printf("shot: read %v bytes\n", len(input))
+
+	// sheBangLine := strings.SplitN(string(input), "\n", 2)[0]
+	// parsedShebang, err := parseShebang(sheBangLine)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "shot: cannot parse shebang: %q: %v\n", sheBangLine, err)
+	// 	os.Exit(1)
+	// }
+
+	// cmd := exec.Command(parsedShebang[0], parsedShebang[1:]...)
+	// cmd.Args = append(cmd.Args, os.Args[1:]...)
+	// cmd.Stdin = bytes.NewReader(input)
+	// cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+
+	// err = cmd.Run()
+	// if err != nil {
+	// 	if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 0 {
+	// 		os.Exit(exitErr.ExitCode())
+	// 	}
+	// 	fmt.Fprintf(os.Stderr, "shot: %v\n", err)
+	// 	os.Exit(1)
+	// }
 }
+
+// func extractShotConfig(r io.Reader) map[string]string {
+// 	config := make(map[string]string)
+// 	scanner := bufio.NewScanner(r)
+// 	inBlock := false
+
+// 	for scanner.Scan() {
+// 		line := strings.TrimSpace(scanner.Text())
+
+// 		if line == "# shot: configuration" || line == "# shot: config" {
+// 			inBlock = true
+// 			continue
+// 		}
+// 		if inBlock && (line == "# shot: end" || line == "# shot: configuration-end") {
+// 			break
+// 		}
+
+// 		if !inBlock {
+// 			continue
+// 		}
+
+// 		if !strings.HasPrefix(line, "#") {
+// 			continue
+// 		}
+// 		content := strings.TrimSpace(strings.TrimPrefix(line, "#"))
+// 		if !strings.HasPrefix(content, "SHOT_") {
+// 			continue
+// 		}
+
+// 		parts := strings.SplitN(content, "=", 2)
+// 		if len(parts) != 2 {
+// 			continue
+// 		}
+
+// 		key := strings.TrimSpace(parts[0])
+// 		val := strings.TrimSpace(parts[1])
+// 		val = strings.Trim(val, `"'`)
+
+// 		config[key] = val
+// 	}
+
+// 	return config
+// }
